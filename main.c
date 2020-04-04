@@ -277,6 +277,7 @@ void generate_bill(char *invoice_no,customer *det,char *date)
             printf("Enter the item quantity: ");
             scanf("%f",&entry->quantity);
             entry->price = entry->rate * entry->quantity;
+            entry->tax = 0.18*entry->price;
             ITEM_COUNT++;
             printf("\nPress 0 to stop entering\nPress 1 to continue entering\n");
             fwrite(entry,sizeof(items),1,temp_bill_ptr);
@@ -307,7 +308,7 @@ int check_item(items* entry)
             strcpy(entry->name,temp->name);
             entry->rate = temp->rate;
             entry->discount = temp->discount;
-            entry->tax = temp->tax;
+            entry->tax = 0.18*temp->tax;
             fclose(fp);
             return 1;
 
@@ -323,7 +324,6 @@ void display_bill(FILE *fp,customer *det,char *invoice_no,char *date)
 {
     items *temp =malloc(sizeof(items));
     rewind(fp);
-    //fread(temp,sizeof(items),1,fp);
     system("clear");
     printf("*********************************************************************************************************************************************************************************************\n");
     printf("\t\t\t\t\t\t\t\t\t\tAVENUE SUPERMARKET\n");
@@ -343,16 +343,20 @@ void display_bill(FILE *fp,customer *det,char *invoice_no,char *date)
     {
         fread(temp,sizeof(items),1,fp);
         TOTAL = TOTAL + temp->price;
-        DISCOUNT += 1.18*temp->price*temp->discount/100;
+        TAX += temp->tax;
+        DISCOUNT += (temp->price + temp->tax)*(temp->discount)/100;
         printf("%-9d\t\t\t%-9s\t\t\t%-15s\t\t\t%-11.2f\t\t\t\t%-7.2f\t\t\t\t%.2f\n",temp->sno,temp->code,temp->name,temp->quantity,temp->rate,temp->price);
     }
-    TAX = 0.18*TOTAL;
-    TOTAL = TOTAL + TAX;
-    DISCOUNT = 
+
     printf("*********************************************************************************************************************************************************************************************\n");
-    printf("\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t  TOTAL:416.5\n");
-    printf("\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t  TAX:74.7\n");
-    printf("\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t  AMOUNT:491.47\n");
+    printf("\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t  SUB-TOTAL  :%.2f\n",TOTAL);
+    printf("\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t  TAX @ 18%   :%.2f\n",TAX);
+    AMOUNT = TOTAL + TAX;
+    printf("\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t  TOTAL      :%.2f\n",AMOUNT);
+    printf("\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t  DISCOUNT   :%.2f\n",DISCOUNT);
+    AMOUNT -= DISCOUNT ;
+    printf("*********************************************************************************************************************************************************************************************\n");
+    printf("\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t  GRAND TOTAL:%.2f\n",AMOUNT);
     printf("*********************************************************************************************************************************************************************************************\n");
     fclose(fp);
     remove("Temp");
